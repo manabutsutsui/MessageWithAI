@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'ad_banner.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async'; // 追加
 
 class SubscriptionPlan {
   final String name;
@@ -22,6 +24,7 @@ class SubscriptionScreenState extends State<SubscriptionScreen> {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   List<ProductDetails> _products = [];
   bool _isLoading = true;
+  late StreamSubscription<List<PurchaseDetails>> _subscription;
 
   final List<SubscriptionPlan> _plans = [
     SubscriptionPlan(
@@ -47,7 +50,52 @@ class SubscriptionScreenState extends State<SubscriptionScreen> {
   @override
   void initState() {
     super.initState();
+    final Stream<List<PurchaseDetails>> purchaseUpdated = InAppPurchase.instance.purchaseStream;
+    _subscription = purchaseUpdated.listen((purchaseDetailsList) {
+      _listenToPurchaseUpdated(purchaseDetailsList);
+    }, onDone: () {
+      _subscription.cancel();
+    }, onError: (error) {
+      // エラー処理
+    });
     _initializeStore();
+  }
+
+  void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
+    purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
+      if (purchaseDetails.status == PurchaseStatus.purchased) {
+        // 購入完了時の処理
+        await _deliverProduct(purchaseDetails);
+      } else if (purchaseDetails.status == PurchaseStatus.error) {
+        // エラー時の処理
+        _handleError(purchaseDetails.error!);
+      }
+      if (purchaseDetails.pendingCompletePurchase) {
+        await InAppPurchase.instance.completePurchase(purchaseDetails);
+      }
+    });
+  }
+
+  Future<void> _deliverProduct(PurchaseDetails purchaseDetails) async {
+    // ここで購入したプランの情報を保存する
+    // 例: SharedPreferencesを使用
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('subscriptionPlan', purchaseDetails.productID);
+    setState(() {
+      // UIを更新
+    });
+  }
+
+  void _handleError(IAPError error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('購入中にエラーが発生しました: ${error.message}')),
+    );
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 
   Future<void> _initializeStore() async {
