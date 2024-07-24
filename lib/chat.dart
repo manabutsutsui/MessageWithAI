@@ -31,12 +31,16 @@ class CharacterVoiceChatScreenState extends State<CharacterVoiceChatScreen> {
   final List<Message> _messages = [];
   bool _isTyping = false;
   String _apiKey = '';
+  String _subscriptionPlan = 'free_plan';
+  int _chatCount = 0;
+  int _chatLimit = 50;
 
   @override
   void initState() {
     super.initState();
     _loadApiKey();
     _loadMessages();
+    _loadSubscriptionPlan();
   }
 
   Future<void> _loadApiKey() async {
@@ -47,13 +51,41 @@ class CharacterVoiceChatScreenState extends State<CharacterVoiceChatScreen> {
     });
   }
 
+  Future<void> _loadSubscriptionPlan() async {
+    final prefs = await SharedPreferences.getInstance();
+    final plan = prefs.getString('subscriptionPlan') ?? 'free_plan';
+    setState(() {
+      _subscriptionPlan = plan;
+      _chatLimit = _getChatLimit(plan);
+    });
+  }
+
+  int _getChatLimit(String plan) {
+    switch (plan) {
+      case 'standard_monthly_subscription':
+        return 200;
+      case 'premium_monthly_subscription':
+        return -1; // 無制限
+      default:
+        return 50;
+    }
+  }
+
   Future<void> _sendMessage() async {
     if (_messageController.text.isNotEmpty) {
+      if (_subscriptionPlan != 'premium_monthly_subscription' && _chatCount >= _chatLimit) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('チャットのやり取り回数が上限に達しました。プランを変更してください。')),
+        );
+        return;
+      }
+
       final userMessage = _messageController.text;
       setState(() {
         _messages.add(Message(text: userMessage, isUser: true));
         _messageController.clear();
         _isTyping = true;
+        _chatCount++;
       });
 
       final response = await _getAIResponse(userMessage);
@@ -91,7 +123,7 @@ class CharacterVoiceChatScreenState extends State<CharacterVoiceChatScreen> {
         'Accept-Charset': 'utf-8',
       },
       body: jsonEncode({
-        'model': 'gpt-4o',
+        'model': 'gpt-4o-mini',
         'messages': messages,
       }),
     );
@@ -108,13 +140,16 @@ class CharacterVoiceChatScreenState extends State<CharacterVoiceChatScreen> {
     final prefs = await SharedPreferences.getInstance();
     final messages = _messages.map((message) => jsonEncode(message.toJson())).toList();
     await prefs.setStringList('messages_${widget.name}', messages);
+    await prefs.setInt('chatCount_${widget.name}', _chatCount);
   }
 
   Future<void> _loadMessages() async {
     final prefs = await SharedPreferences.getInstance();
     final messages = prefs.getStringList('messages_${widget.name}') ?? [];
+    final chatCount = prefs.getInt('chatCount_${widget.name}') ?? 0;
     setState(() {
       _messages.addAll(messages.map((message) => Message.fromJson(jsonDecode(message))));
+      _chatCount = chatCount;
     });
   }
 
