@@ -24,11 +24,12 @@ class SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final showAds = Provider.of<bool>(context);
     
     return Scaffold(
       body: Column(
         children: [
-          const AdBanner(),
+          AdBanner(isVisible: showAds),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(

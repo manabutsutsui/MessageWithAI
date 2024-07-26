@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:provider/provider.dart';
 import 'create_character.dart';
 import 'chat.dart';
 import 'ad_banner.dart';
@@ -31,10 +32,11 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final showAds = Provider.of<bool>(context);
     return Scaffold(
       body: Column(
         children: [
-          const AdBanner(),
+          AdBanner(isVisible: showAds),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance

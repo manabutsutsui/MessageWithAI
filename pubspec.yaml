@@ -45,6 +45,12 @@ dependencies:
   shared_preferences: ^2.2.3
   in_app_purchase: ^3.2.0
   google_mobile_ads: ^5.1.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/message_with_ai.png"
 
 dev_dependencies:
   flutter_test:

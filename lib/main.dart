@@ -6,15 +6,21 @@ import 'theme/theme_provider.dart';
 import 'home.dart';
 import 'settings.dart';
 import 'ad_banner.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  final prefs = await SharedPreferences.getInstance();
+  final showAds = prefs.getBool('showAds') ?? true;
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        Provider<bool>.value(value: showAds),
+      ],
       child: const MyApp(),
     ),
   );
@@ -27,9 +33,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
-      title: 'WITH AI',
+      title: 'Message with AI',
       theme: themeProvider.isDarkMode ? ThemeData.dark() : ThemeData.light(),
       home: const MainScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -56,9 +63,10 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final showAds = Provider.of<bool>(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat with AI',
+        title: const Text('Message with AI',
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -67,7 +75,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: Column(
         children: [
-          const AdBanner(), // AdBannerを追加
+          AdBanner(isVisible: showAds),
           Expanded(
             child: Center(
               child: _widgetOptions.elementAt(_selectedIndex),

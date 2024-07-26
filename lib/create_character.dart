@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart';
 import 'character_detail.dart';
 import 'ad_banner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -118,6 +119,7 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final showAds = Provider.of<bool>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('キャラクター作成'),
@@ -125,7 +127,7 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const AdBanner(),
+            AdBanner(isVisible: showAds),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(

@@ -26,6 +26,7 @@ class SubscriptionScreenState extends State<SubscriptionScreen> {
   bool _isLoading = true;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
   String _selectedPlan = 'free_plan'; // 選択されたプランを示す状態変数
+  bool _showAds = true;
 
   final List<SubscriptionPlan> _plans = [
     SubscriptionPlan(
@@ -61,6 +62,22 @@ class SubscriptionScreenState extends State<SubscriptionScreen> {
     });
     _initializeStore();
     _loadSelectedPlan(); // 選択されたプランをロード
+    _loadAdVisibility();
+  }
+
+  Future<void> _loadAdVisibility() async {
+    setState(() {
+      _showAds = _selectedPlan != 'premium_monthly_subscription';
+    });
+  }
+
+  Future<void> _updateAdVisibility(String planId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final bool showAds = planId != 'premium_monthly_subscription';
+    await prefs.setBool('showAds', showAds);
+    setState(() {
+      _showAds = showAds;
+    });
   }
 
   Future<void> _loadSelectedPlan() async {
@@ -90,6 +107,7 @@ class SubscriptionScreenState extends State<SubscriptionScreen> {
     // 例: SharedPreferencesを使用
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('subscriptionPlan', purchaseDetails.productID);
+    await _updateAdVisibility(purchaseDetails.productID);
     setState(() {
       _selectedPlan = purchaseDetails.productID; // 選択されたプランを更新
     });
@@ -131,6 +149,7 @@ class SubscriptionScreenState extends State<SubscriptionScreen> {
       // 無料プランの処理
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('subscriptionPlan', plan.productId);
+      await _updateAdVisibility(plan.productId);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('無料プランが選択されました')),
       );
@@ -153,7 +172,7 @@ class SubscriptionScreenState extends State<SubscriptionScreen> {
       appBar: AppBar(title: const Text('サブスクリプション')),
       body: Column(
         children: [
-          const AdBanner(),
+          AdBanner(isVisible: _showAds),
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
