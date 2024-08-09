@@ -46,6 +46,8 @@ dependencies:
   in_app_purchase: ^3.2.0
   google_mobile_ads: ^5.1.0
   flutter_launcher_icons: ^0.13.1
+  url_launcher: ^6.3.0
+  cloud_functions: ^5.0.3
 
 flutter_icons:
   android: true

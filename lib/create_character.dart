@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:provider/provider.dart';
 import 'character_detail.dart';
 import 'ad_banner.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class CreateCharacterScreen extends StatefulWidget {
@@ -19,15 +18,11 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
   String _characterImageUrl = '';
   bool _isGenerating = false;
   String _apiKey = '';
-  String _subscriptionPlan = 'free_plan';
-  int _generateCount = 0;
-  int _generateLimit = 10;
 
   @override
   void initState() {
     super.initState();
     _loadApiKey();
-    _loadSubscriptionPlan();
   }
 
   Future<void> _loadApiKey() async {
@@ -38,34 +33,7 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
     });
   }
 
-  Future<void> _loadSubscriptionPlan() async {
-    final prefs = await SharedPreferences.getInstance();
-    final plan = prefs.getString('subscriptionPlan') ?? 'free_plan';
-    setState(() {
-      _subscriptionPlan = plan;
-      _generateLimit = _getGenerateLimit(plan);
-    });
-  }
-
-  int _getGenerateLimit(String plan) {
-    switch (plan) {
-      case 'standard_monthly_subscription':
-        return 20;
-      case 'premium_monthly_subscription':
-        return -1; // 無制限
-      default:
-        return 10;
-    }
-  }
-
   Future<void> _generateCharacterImage(String description) async {
-    if (_subscriptionPlan != 'premium_monthly_subscription' && _generateCount >= _generateLimit) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('画像生成回数が上限に達しました。プランを変更してください。')),
-      );
-      return;
-    }
-
     setState(() {
       _isGenerating = true;
     });
@@ -94,9 +62,7 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
         final data = jsonDecode(response.body);
         setState(() {
           _characterImageUrl = data['data'][0]['url'];
-          _generateCount++;
         });
-        _saveGenerateCount();
       } else {
         print('画像生成に失敗しました: ${response.statusCode}');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -112,14 +78,9 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
     });
   }
 
-  Future<void> _saveGenerateCount() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('generateCount', _generateCount);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final showAds = Provider.of<bool>(context);
+    // final showAds = Provider.of<bool>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('キャラクター作成'),
@@ -127,7 +88,7 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            AdBanner(isVisible: showAds),
+            const AdBanner(),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(

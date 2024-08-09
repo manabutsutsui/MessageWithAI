@@ -4,7 +4,7 @@ import 'theme/theme_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'character_list.dart';
-import 'subscription_screen.dart';
+// import 'subscription_screen.dart';
 import 'ad_banner.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -71,19 +71,19 @@ class SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
                 const Divider(),
-                ListTile(
-                  title: const Text('サブスクリプション'),
-                  trailing: const Icon(Icons.arrow_forward_ios),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SubscriptionScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(),
+                // ListTile(
+                //   title: const Text('サブスクリプション'),
+                //   trailing: const Icon(Icons.arrow_forward_ios),
+                //   onTap: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (context) => const SubscriptionScreen(),
+                //       ),
+                //     );
+                //   },
+                // ),
+                // const Divider(),
               ],
             ),
           ),
