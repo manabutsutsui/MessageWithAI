@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:provider/provider.dart';
 import 'create_character.dart';
 import 'chat.dart';
 import 'ad_banner.dart';
@@ -32,11 +31,9 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final showAds = Provider.of<bool>(context);
     return Scaffold(
       body: Column(
         children: [
-          AdBanner(isVisible: showAds),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -54,6 +51,22 @@ class HomeScreenState extends State<HomeScreen> {
                 }
 
                 final characters = snapshot.data!.docs;
+
+                if (characters.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.person_outline, size: 86, color: Colors.grey),
+                        SizedBox(height: 8),
+                        Text(
+                          'No characters yet.',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -134,6 +147,7 @@ class HomeScreenState extends State<HomeScreen> {
               },
             ),
           ),
+          const AdBanner(),
         ],
       ),
       floatingActionButton: FloatingActionButton(

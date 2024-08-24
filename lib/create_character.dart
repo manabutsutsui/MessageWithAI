@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'character_detail.dart';
 import 'ad_banner.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class CreateCharacterScreen extends StatefulWidget {

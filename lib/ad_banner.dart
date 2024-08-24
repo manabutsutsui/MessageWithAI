@@ -5,8 +5,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'dart:io';
 
 class AdBanner extends StatefulWidget {
-  final bool isVisible;
-  const AdBanner({super.key, this.isVisible = true});
+  const AdBanner({super.key});
 
   @override
   AdBannerState createState() => AdBannerState();
@@ -19,9 +18,7 @@ class AdBannerState extends State<AdBanner> {
   @override
   void initState() {
     super.initState();
-    if (widget.isVisible) {
-      _loadAdConfig();
-    }
+    _loadAdConfig();
   }
 
   Future<void> _loadAdConfig() async {
@@ -56,11 +53,8 @@ class AdBannerState extends State<AdBanner> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.isVisible) {
-      return const SizedBox.shrink();
-    }
     return Container(
-      width: double.infinity, // 横いっぱいに広がるように設定
+      width: double.infinity,
       height: _bannerAd?.size.height.toDouble() ?? 0,
       alignment: Alignment.center,
       child: _isBannerAdReady ? AdWidget(ad: _bannerAd!) : const SizedBox(),

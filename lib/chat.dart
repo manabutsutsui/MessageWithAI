@@ -70,7 +70,6 @@ class CharacterVoiceChatScreenState extends State<CharacterVoiceChatScreen> {
   Future<String> _getAIResponse(String userMessage) async {
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
-    // 過去のメッセージを含める
     final messages = [
       {
         'role': 'system',

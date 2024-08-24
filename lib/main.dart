@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'theme/theme_provider.dart';
 import 'home.dart';
 import 'settings.dart';
-import 'ad_banner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
@@ -63,7 +62,6 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final showAds = Provider.of<bool>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Message with AI',
@@ -75,7 +73,6 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: Column(
         children: [
-          AdBanner(isVisible: showAds),
           Expanded(
             child: Center(
               child: _widgetOptions.elementAt(_selectedIndex),
@@ -87,11 +84,11 @@ class _MainScreenState extends State<MainScreen> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'ホーム',
+            label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
-            label: '設定',
+            label: 'Settings',
           ),
         ],
         currentIndex: _selectedIndex,

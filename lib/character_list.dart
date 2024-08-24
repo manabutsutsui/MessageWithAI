@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:provider/provider.dart';
 import 'character_detail_edit.dart';
 import 'ad_banner.dart';
 
@@ -40,14 +39,13 @@ class CharacterListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showAds = Provider.of<bool>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('編集するキャラクターを選択'),
       ),
       body: Column(
         children: [
-          AdBanner(isVisible: showAds),
+          const AdBanner(),
           Expanded(
             child: ListView.builder(
               itemCount: characters.length,
@@ -77,8 +75,8 @@ class CharacterListScreen extends StatelessWidget {
               },
             ),
           ),
-          SafeArea(
-            child: AdBanner(isVisible: showAds),
+          const SafeArea(
+            child: AdBanner(),
           ),
         ],
       ),
