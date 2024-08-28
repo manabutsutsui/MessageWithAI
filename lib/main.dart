@@ -8,9 +8,14 @@ import 'dart:io';
 import 'style_selection_screen.dart';
 import 'utils/ad_native.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
+import 'subscription_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Purchases.setDebugLogsEnabled(true);
+  await Purchases.setup('appl_cdWSpEJBdEQKmBYGohthDuHkDBG');
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -70,7 +75,58 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('StyleShift: AI Photo Transformer', style: TextStyle(fontWeight: FontWeight.bold),),
+        title: const Text(
+          'StyleShift',
+          style: TextStyle(
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Pacifico'),
+        ),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              switch (value) {
+                case 'privacy':
+                  _launchPrivacyPolicy();
+                  break;
+                case 'subscription':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => SubscriptionScreen()),
+                  );
+                  break;
+                case 'review':
+                  // レビュー画面を表示する処理
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'privacy',
+                child: Text(
+                  'Privacy Policy',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'subscription',
+                child: Text(
+                  'Subscription 👑',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'review',
+                child: Text(
+                  'Write a Review',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -78,7 +134,7 @@ class _MainScreenState extends State<MainScreen> {
           children: [
             Icon(
               Icons.image,
-              size: MediaQuery.of(context).size.height * 0.3,
+              size: MediaQuery.of(context).size.height * 0.25,
               color: Colors.grey[400],
             ),
             const SizedBox(height: 16),
@@ -93,13 +149,22 @@ class _MainScreenState extends State<MainScreen> {
                 ),
                 backgroundColor: Colors.white,
               ),
-              child: const Text('Choose Photo', style: TextStyle(fontSize: 24, color: Colors.black, fontWeight: FontWeight.bold),),
+              child: const Text(
+                'Choose Photo',
+                style: TextStyle(
+                    fontSize: 24,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold),
+              ),
             ),
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: () => _pickImage(ImageSource.camera),
               icon: const Icon(Icons.camera_alt),
-              label: const Text('Take Photo', style: TextStyle(decoration: TextDecoration.underline),),
+              label: const Text(
+                'Take Photo',
+                style: TextStyle(decoration: TextDecoration.underline),
+              ),
             ),
             const SizedBox(height: 8),
             const NativeAdWidget(),
@@ -107,5 +172,24 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _launchPrivacyPolicy() async {
+    final Uri url =
+        Uri.parse('https://tsutsunoidoblog.com/style-shift-privacy-policy/');
+    if (!await launchUrl(url)) {
+      throw Exception('プライバシーポリシーページを開けませんでした');
+    }
+  }
+
+  Future<bool> checkSubscriptionStatus() async {
+    try {
+      CustomerInfo customerInfo = await Purchases.getCustomerInfo();
+      return customerInfo.entitlements.active
+          .containsKey('your_entitlement_id');
+    } catch (e) {
+      print('サブスクリプション状態の確認に失敗しました: $e');
+      return false;
+    }
   }
 }

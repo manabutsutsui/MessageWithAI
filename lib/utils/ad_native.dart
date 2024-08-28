@@ -79,10 +79,17 @@ class NativeAdWidgetState extends State<NativeAdWidget> {
   Widget build(BuildContext context) {
     if (!_isAdLoaded) return Container();
 
-    return Container(
-      height: 250.0,
-      alignment: Alignment.center,
-      child: AdWidget(ad: _nativeAd!),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          width: constraints.maxWidth,
+          constraints: const BoxConstraints(
+            minHeight: 100.0,
+            maxHeight: 300.0, // 最大高さを設定
+          ),
+          child: AdWidget(ad: _nativeAd!),
+        );
+      },
     );
   }
 }

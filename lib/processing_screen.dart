@@ -35,7 +35,7 @@ class ProcessingScreenState extends State<ProcessingScreen> {
     super.initState();
     _loadApiToken().then((_) async {
       await _adManager.loadAd();
-      await Future.delayed(const Duration(seconds: 2)); // 広告の読み込みを待つ
+      await Future.delayed(const Duration(seconds: 2));
       _processImage();
     });
   }
@@ -138,19 +138,8 @@ class ProcessingScreenState extends State<ProcessingScreen> {
           imageFile.path,
         ));
 
-        print('リクエスト: ${request.toString()}'); // デバッグ用
-
         var streamedResponse = await request.send();
         var response = await http.Response.fromStream(streamedResponse);
-
-        print('API呼び出し開始');
-        // APIリクエスト前
-
-        print('API呼び出し完了。ステータスコード: ${response.statusCode}');
-        // レスポンス受信後
-
-        print('画像処理完了');
-        // 画像処理完了後
 
         if (response.statusCode == 200) {
           final responseData = json.decode(response.body);
@@ -166,13 +155,12 @@ class ProcessingScreenState extends State<ProcessingScreen> {
             processedImageUrl = tempFile.path;
           });
         } else {
-          throw Exception('画像処理の開始に失敗しました。ステータスコード: ${response.statusCode}');
+          throw Exception('Failed to start image processing. Status code: ${response.statusCode}');
         }
       } catch (e) {
         setState(() {
           errorMessage = e.toString();
         });
-        print('画像処理中にエラーが発生しました: $e');
       }
     });
   }
@@ -180,10 +168,10 @@ class ProcessingScreenState extends State<ProcessingScreen> {
   Future<void> _shareImage() async {
     if (processedImageUrl != null) {
       await Share.shareXFiles([XFile(processedImageUrl!)],
-          text: '${widget.selectedStyle}スタイルで生成された画像');
+          text: 'Image generated in ${widget.selectedStyle} style');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('共有する画像がありません。')),
+        const SnackBar(content: Text('There are no images to share.')),
       );
     }
   }
@@ -196,7 +184,7 @@ class ProcessingScreenState extends State<ProcessingScreen> {
           await _saveImageToGallery();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('ストレージへのアクセス権限が必要です。')),
+            const SnackBar(content: Text('You need to have permission to access the storage.')),
           );
         }
       } else {
@@ -204,7 +192,7 @@ class ProcessingScreenState extends State<ProcessingScreen> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('保存する画像がありません。')),
+        const SnackBar(content: Text('There is no image to save.')),
       );
     }
   }
@@ -213,11 +201,11 @@ class ProcessingScreenState extends State<ProcessingScreen> {
     final result = await ImageGallerySaver.saveFile(processedImageUrl!);
     if (result['isSuccess']) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('画像がギャラリーに保存されました。')),
+        const SnackBar(content: Text('The image has been saved to your gallery.')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('画像の保存に失敗しました。')),
+        const SnackBar(content: Text('Failed to save image.')),
       );
     }
   }
@@ -231,16 +219,17 @@ class ProcessingScreenState extends State<ProcessingScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.share),
-            onPressed: _shareImage,
+            onPressed: processedImageUrl != null ? _shareImage : null,
           ),
           TextButton(
-            onPressed: _saveImage,
-            child: const Text(
+            onPressed: processedImageUrl != null ? _saveImage : null,
+            child: Text(
               'Save',
               style: TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16),
+                color: processedImageUrl != null ? Colors.blue : Colors.grey,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
           ),
         ],
@@ -255,18 +244,20 @@ class ProcessingScreenState extends State<ProcessingScreen> {
                     fit: BoxFit.contain,
                   )
                 : errorMessage != null
-                    ? Text('エラー: $errorMessage')
+                    ? Text('Error: $errorMessage')
                     : const CircularProgressIndicator(),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () {
-              setState(() {
-                processedImageUrl = null;
-                errorMessage = null;
-              });
-              _processImage();
-            },
+            onPressed: processedImageUrl != null
+                ? () {
+                    setState(() {
+                      processedImageUrl = null;
+                      errorMessage = null;
+                    });
+                    _processImage();
+                  }
+                : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
             ),
@@ -276,10 +267,17 @@ class ProcessingScreenState extends State<ProcessingScreen> {
             ),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.popUntil(context, (route) => route.isFirst);
-            },
-            child: const Text('Back to Photo Selection'),
+            onPressed: processedImageUrl != null
+                ? () {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                  }
+                : null,
+            child: Text(
+              'Back to Photo Selection',
+              style: TextStyle(
+                color: processedImageUrl != null ? Colors.blue : Colors.grey,
+              ),
+            ),
           ),
         ],
       ),
