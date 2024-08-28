@@ -3,22 +3,22 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'theme/theme_provider.dart';
-import 'home.dart';
-import 'settings.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'style_selection_screen.dart';
+import 'utils/ad_native.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  final prefs = await SharedPreferences.getInstance();
-  final showAds = prefs.getBool('showAds') ?? true;
+  await MobileAds.instance.initialize();
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
-        Provider<bool>.value(value: showAds),
       ],
       child: const MyApp(),
     ),
@@ -32,8 +32,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
-      title: 'Message with AI',
-      theme: themeProvider.isDarkMode ? ThemeData.dark() : ThemeData.light(),
+      title: 'StyleShift: AI Photo Transformer',
+      theme: themeProvider.isDarkMode ? ThemeData.light() : ThemeData.dark(),
       home: const MainScreen(),
       debugShowCheckedModeBanner: false,
     );
@@ -48,51 +48,63 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
-  static const List<Widget> _widgetOptions = <Widget>[
-    HomeScreen(),
-    SettingsScreen(),
-  ];
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  Future<void> _pickImage(ImageSource source) async {
+    final XFile? image = await _picker.pickImage(source: source);
+    if (image != null) {
+      setState(() {
+        _image = File(image.path);
+      });
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StyleSelectionScreen(image: _image!),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Message with AI',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Pacifico',
-            )),
+        title: const Text('StyleShift: AI Photo Transformer', style: TextStyle(fontWeight: FontWeight.bold),),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Center(
-              child: _widgetOptions.elementAt(_selectedIndex),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Icon(
+              Icons.image,
+              size: MediaQuery.of(context).size.height * 0.3,
+              color: Colors.grey[400],
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+            const SizedBox(height: 16),
+            const Text('Select a photo to apply style ✨'),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () => _pickImage(ImageSource.gallery),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                backgroundColor: Colors.white,
+              ),
+              child: const Text('Choose Photo', style: TextStyle(fontSize: 24, color: Colors.black, fontWeight: FontWeight.bold),),
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () => _pickImage(ImageSource.camera),
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('Take Photo', style: TextStyle(decoration: TextDecoration.underline),),
+            ),
+            const SizedBox(height: 8),
+            const NativeAdWidget(),
+          ],
+        ),
       ),
     );
   }

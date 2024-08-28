@@ -30,6 +30,10 @@
 	<string>マイクロフォンからの音声入力を使用して、キャラクターとの会話を可能にします。</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>音声認識を使用して、キャラクターとの会話を可能にします。</string>
+	<key>NSCameraUsageDescription</key>
+	<string>写真を撮影してスタイル変換するためにカメラへのアクセスが必要です。</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>写真を選択してスタイル変換するためにフォトライブラリへのアクセスが必要です。</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

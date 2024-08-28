@@ -48,11 +48,16 @@ dependencies:
   flutter_launcher_icons: ^0.13.1
   url_launcher: ^6.3.0
   cloud_functions: ^5.0.3
+  image_picker: ^1.1.2
+  share_plus: ^10.0.0
+  image_gallery_saver: ^2.0.3
+  permission_handler: ^11.3.1
+  image: ^4.2.0
 
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/message_with_ai.png"
+  image_path: "assets/icon_with_ai.png"
 
 dev_dependencies:
   flutter_test:
@@ -113,3 +118,7 @@ flutter:
 
   assets:
     - assets/config.json
+    - assets/images/3d_style.png
+    - assets/images/anime_style.png
+    - assets/images/watercolor_style.png
+    - assets/images/fantastic_style.png

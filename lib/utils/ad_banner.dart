@@ -53,11 +53,14 @@ class AdBannerState extends State<AdBanner> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isBannerAdReady) {
+      return const SizedBox();
+    }
     return Container(
       width: double.infinity,
-      height: _bannerAd?.size.height.toDouble() ?? 0,
+      height: _bannerAd!.size.height.toDouble(),
       alignment: Alignment.center,
-      child: _isBannerAdReady ? AdWidget(ad: _bannerAd!) : const SizedBox(),
+      child: AdWidget(ad: _bannerAd!),
     );
   }
 
