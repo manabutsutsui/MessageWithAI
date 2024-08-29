@@ -9,13 +9,10 @@ import 'style_selection_screen.dart';
 import 'utils/ad_native.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
-import 'subscription_screen.dart';
+import 'subscription_buttom_sheet.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Purchases.setDebugLogsEnabled(true);
-  await Purchases.setup('appl_cdWSpEJBdEQKmBYGohthDuHkDBG');
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -91,11 +88,7 @@ class _MainScreenState extends State<MainScreen> {
                   _launchPrivacyPolicy();
                   break;
                 case 'subscription':
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => SubscriptionScreen()),
-                  );
+                  _showSubscriptionBottomSheet();
                   break;
                 case 'review':
                   // レビュー画面を表示する処理
@@ -182,14 +175,16 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  Future<bool> checkSubscriptionStatus() async {
-    try {
-      CustomerInfo customerInfo = await Purchases.getCustomerInfo();
-      return customerInfo.entitlements.active
-          .containsKey('your_entitlement_id');
-    } catch (e) {
-      print('サブスクリプション状態の確認に失敗しました: $e');
-      return false;
-    }
+  Future<void> _showSubscriptionBottomSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+      ),
+      builder: (BuildContext context) {
+        return const SubscriptionBottomSheet();
+      },
+    );
   }
 }
