@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'providers/in_app_purchase_provider.dart';
 
-class SubscriptionBottomSheet extends StatelessWidget {
-  const SubscriptionBottomSheet({Key? key}) : super(key: key);
+class SubscriptionBottomSheet extends ConsumerWidget {
+  const SubscriptionBottomSheet({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isPremium = ref.watch(inAppPurchaseProvider);
+
     return Container(
       width: MediaQuery.of(context).size.width,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -27,14 +31,16 @@ class SubscriptionBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            '\u005C Try it free for 3 days!/',
+            '\u005C First 3 days free/',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           ElevatedButton(
-            onPressed: () {
-              // ここにプレミアムプランの購入ロジックを追加
-            },
+            onPressed: isPremium
+                ? null
+                : () {
+                    ref.read(inAppPurchaseProvider.notifier).purchasePremium();
+                  },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 50),
@@ -42,21 +48,29 @@ class SubscriptionBottomSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
-                    Text('👑', style: TextStyle(fontSize: 18),),
-                    SizedBox(width: 18),
+                    const Text('👑', style: TextStyle(fontSize: 18),),
+                    const SizedBox(width: 18),
                     Text(
-                      'Premium Plan',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
+                      isPremium ? 'Premium Plan (Active)' : 'Premium Plan',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
                     ),
                   ],
                 ),
-                Icon(Icons.arrow_forward_ios, color: Colors.black),
+                const Icon(Icons.arrow_forward_ios, color: Colors.black),
               ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '\$3.99/month',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
             ),
           ),
           const SizedBox(height: 8),
@@ -76,6 +90,12 @@ class SubscriptionBottomSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
+          TextButton(
+            onPressed: () {
+              ref.read(inAppPurchaseProvider.notifier).restorePurchases();
+            },
+            child: const Text('Restore Purchases'),
+          ),
         ],
       ),
     );

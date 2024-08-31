@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:provider/provider.dart';
-import 'theme/theme_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'style_selection_screen.dart';
@@ -18,11 +17,8 @@ void main() async {
   );
   await MobileAds.instance.initialize();
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => ThemeProvider()),
-      ],
-      child: const MyApp(),
+    const ProviderScope(
+      child: MyApp(),
     ),
   );
 }
@@ -32,10 +28,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       title: 'StyleShift: AI Photo Transformer',
-      theme: themeProvider.isDarkMode ? ThemeData.light() : ThemeData.dark(),
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+        ),
+      ),
       home: const MainScreen(),
       debugShowCheckedModeBanner: false,
     );
@@ -90,9 +91,9 @@ class _MainScreenState extends State<MainScreen> {
                 case 'subscription':
                   _showSubscriptionBottomSheet();
                   break;
-                case 'review':
-                  // レビュー画面を表示する処理
-                  break;
+                // case 'review':
+                //   // レビュー画面を表示する処理
+                //   break;
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -110,13 +111,13 @@ class _MainScreenState extends State<MainScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-              const PopupMenuItem<String>(
-                value: 'review',
-                child: Text(
-                  'Write a Review',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
+              // const PopupMenuItem<String>(
+              //   value: 'review',
+              //   child: Text(
+              //     'Write a Review',
+              //     style: TextStyle(fontWeight: FontWeight.bold),
+              //   ),
+              // ),
             ],
           ),
         ],
