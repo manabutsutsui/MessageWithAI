@@ -85,7 +85,7 @@ class NativeAdWidgetState extends State<NativeAdWidget> {
           width: constraints.maxWidth,
           constraints: const BoxConstraints(
             minHeight: 100.0,
-            maxHeight: 300.0, // 最大高さを設定
+            maxHeight: 350.0, // 最大高さを設定
           ),
           child: AdWidget(ad: _nativeAd!),
         );

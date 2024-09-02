@@ -8,7 +8,7 @@ import 'style_selection_screen.dart';
 import 'utils/ad_native.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'subscription_buttom_sheet.dart';
+import 'package:in_app_review/in_app_review.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,6 +53,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   File? _image;
   final ImagePicker _picker = ImagePicker();
+  final InAppReview inAppReview = InAppReview.instance;
 
   Future<void> _pickImage(ImageSource source) async {
     final XFile? image = await _picker.pickImage(source: source);
@@ -89,11 +90,11 @@ class _MainScreenState extends State<MainScreen> {
                   _launchPrivacyPolicy();
                   break;
                 case 'subscription':
-                  _showSubscriptionBottomSheet();
+
                   break;
-                // case 'review':
-                //   // レビュー画面を表示する処理
-                //   break;
+                case 'review':
+                  _requestReview();
+                  break;
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -111,13 +112,13 @@ class _MainScreenState extends State<MainScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-              // const PopupMenuItem<String>(
-              //   value: 'review',
-              //   child: Text(
-              //     'Write a Review',
-              //     style: TextStyle(fontWeight: FontWeight.bold),
-              //   ),
-              // ),
+              const PopupMenuItem<String>(
+                value: 'review',
+                child: Text(
+                  'Write a Review',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
             ],
           ),
         ],
@@ -176,16 +177,9 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  Future<void> _showSubscriptionBottomSheet() async {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-      ),
-      builder: (BuildContext context) {
-        return const SubscriptionBottomSheet();
-      },
-    );
+  Future<void> _requestReview() async {
+    if (await inAppReview.isAvailable()) {
+      inAppReview.requestReview();
+    }
   }
 }
