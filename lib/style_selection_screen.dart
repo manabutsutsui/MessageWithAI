@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'processing_screen.dart';
+import 'subscription_screen.dart';
+import 'provider/subscription_provider.dart';
 import 'dart:io';
 
 final List<String> images = [
@@ -7,22 +10,30 @@ final List<String> images = [
   'assets/images/watercolor_style.png',
   'assets/images/fantastic_style.png',
   'assets/images/3d_style.png',
+  'assets/images/colored_pencil_style.png',
+  'assets/images/midcentury_style.png',
+  'assets/images/neon_style.png',
+  'assets/images/oil_painting_style.png',
+  'assets/images/psychedelic_style.png',
+  'assets/images/stained_glass_style.png',
 ];
 
-class StyleSelectionScreen extends StatefulWidget {
+class StyleSelectionScreen extends ConsumerStatefulWidget {
   final File image;
 
   const StyleSelectionScreen({super.key, required this.image});
 
   @override
-  StyleSelectionScreenState createState() => StyleSelectionScreenState();
+  ConsumerState<StyleSelectionScreen> createState() => StyleSelectionScreenState();
 }
 
-class StyleSelectionScreenState extends State<StyleSelectionScreen> {
+class StyleSelectionScreenState extends ConsumerState<StyleSelectionScreen> {
   String? selectedStyle;
 
   @override
   Widget build(BuildContext context) {
+    final subscriptionState = ref.watch(subscriptionProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Select a Style', style: TextStyle(fontWeight: FontWeight.bold),),
@@ -53,7 +64,7 @@ class StyleSelectionScreenState extends State<StyleSelectionScreen> {
                       itemBuilder: (context, index) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
-                          child: _buildStyleButton(context, images[index]),
+                          child: _buildStyleButton(context, images[index], index >= 4 && subscriptionState.value != true),
                         );
                       },
                     ),
@@ -87,14 +98,22 @@ class StyleSelectionScreenState extends State<StyleSelectionScreen> {
     );
   }
 
-  Widget _buildStyleButton(BuildContext context, String imagePath) {
+  Widget _buildStyleButton(BuildContext context, String imagePath, bool isPremium) {
     String styleName = _getStyleName(imagePath);
     bool isSelected = selectedStyle == imagePath;
+    
     return GestureDetector(
       onTap: () {
-        setState(() {
-          selectedStyle = imagePath;
-        });
+        if (isPremium) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SubscriptionScreen()),
+          );
+        } else {
+          setState(() {
+            selectedStyle = imagePath;
+          });
+        }
       },
       child: Stack(
         children: [
@@ -113,7 +132,7 @@ class StyleSelectionScreenState extends State<StyleSelectionScreen> {
             ),
             child: Center(
               child: Text(
-                styleName,
+                isPremium ? '👑' : styleName,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -123,7 +142,7 @@ class StyleSelectionScreenState extends State<StyleSelectionScreen> {
               ),
             ),
           ),
-          if (isSelected)
+          if (isSelected && !isPremium)
             Positioned(
               right: 5,
               top: 5,
@@ -155,6 +174,18 @@ class StyleSelectionScreenState extends State<StyleSelectionScreen> {
         return 'fantastic';
       case 'assets/images/3d_style.png':
         return '3D';
+      case 'assets/images/colored_pencil_style.png':
+        return 'colored pencil';
+      case 'assets/images/midcentury_style.png':
+        return 'midcentury';
+      case 'assets/images/neon_style.png':
+        return 'neon';
+      case 'assets/images/oil_painting_style.png':
+        return 'oil painting';
+      case 'assets/images/psychedelic_style.png':
+        return 'psychedelic';
+      case 'assets/images/stained_glass_style.png':
+        return 'stained glass';
       default:
         return '';
     }

@@ -9,6 +9,13 @@ import 'utils/ad_native.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
+import 'subscription_screen.dart';
+import 'provider/subscription_provider.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,11 +23,46 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await MobileAds.instance.initialize();
+  
+  const isDebug = !bool.fromEnvironment('dart.vm.product');
+  
+  // config.jsonからRevenueCatのAPIキーを読み込む
+  final config = await loadConfig();
+  final configuration = PurchasesConfiguration(
+    Platform.isAndroid
+      ? config['revenueCatApiKeyAndroid']
+      : config['revenueCatApiKeyiOS'],
+  );
+  
+  String appUserId = await _getOrCreateAppUserId();
+  
+  await Purchases.configure(configuration..appUserID = appUserId);
+  
+  Purchases.setDebugLogsEnabled(isDebug);
+  
   runApp(
     const ProviderScope(
       child: MyApp(),
     ),
   );
+}
+
+// config.jsonを読み込む関数
+Future<Map<String, dynamic>> loadConfig() async {
+  final configString = await rootBundle.loadString('assets/config.json');
+  return json.decode(configString);
+}
+
+Future<String> _getOrCreateAppUserId() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? appUserId = prefs.getString('app_user_id');
+  
+  if (appUserId == null) {
+    appUserId = const Uuid().v4();
+    await prefs.setString('app_user_id', appUserId);
+  }
+  
+  return appUserId;
 }
 
 class MyApp extends StatelessWidget {
@@ -43,14 +85,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  ConsumerState<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends ConsumerState<MainScreen> {
   File? _image;
   final ImagePicker _picker = ImagePicker();
   final InAppReview inAppReview = InAppReview.instance;
@@ -72,6 +114,8 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final subscriptionState = ref.watch(subscriptionProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -90,7 +134,12 @@ class _MainScreenState extends State<MainScreen> {
                   _launchPrivacyPolicy();
                   break;
                 case 'subscription':
-
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SubscriptionScreen(),
+                    ),
+                  );
                   break;
                 case 'review':
                   _requestReview();
@@ -162,7 +211,10 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const NativeAdWidget(),
+            if (subscriptionState.value == true)
+              const Text('You are a subscriber!', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 24),)
+            else
+              const NativeAdWidget()
           ],
         ),
       ),
@@ -181,5 +233,33 @@ class _MainScreenState extends State<MainScreen> {
     if (await inAppReview.isAvailable()) {
       inAppReview.requestReview();
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Purchases.addCustomerInfoUpdateListener(_customerInfoUpdated);
+    _fetchOfferings();
+  }
+
+  Future<void> _fetchOfferings() async {
+    try {
+      // final offerings = await Purchases.getOfferings();
+      // print(offerings.current);
+      // print(offerings.all);
+      // print(offerings.current?.monthly?.storeProduct.priceString);
+    } catch (e) {
+      print('Error fetching offerings: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    Purchases.removeCustomerInfoUpdateListener(_customerInfoUpdated);
+    super.dispose();
+  }
+
+  void _customerInfoUpdated(CustomerInfo info) {
+    ref.read(subscriptionProvider.notifier).checkSubscription();
   }
 }

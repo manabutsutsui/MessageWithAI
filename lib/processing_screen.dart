@@ -7,10 +7,13 @@ import 'package:share_plus/share_plus.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image/image.dart' as img;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'utils/ad_banner.dart';
 import 'utils/ad_reward_interstitial.dart';
+import 'provider/subscription_provider.dart';
+import 'package:flutter/foundation.dart';
 
-class ProcessingScreen extends StatefulWidget {
+class ProcessingScreen extends ConsumerStatefulWidget {
   final File image;
   final String selectedStyle;
 
@@ -21,10 +24,10 @@ class ProcessingScreen extends StatefulWidget {
   });
 
   @override
-  ProcessingScreenState createState() => ProcessingScreenState();
+  ConsumerState<ProcessingScreen> createState() => ProcessingScreenState();
 }
 
-class ProcessingScreenState extends State<ProcessingScreen> {
+class ProcessingScreenState extends ConsumerState<ProcessingScreen> {
   String? processedImageUrl;
   String? errorMessage;
   late String apiToken;
@@ -34,7 +37,10 @@ class ProcessingScreenState extends State<ProcessingScreen> {
   void initState() {
     super.initState();
     _loadApiToken().then((_) async {
-      await _adManager.loadAd();
+      final isSubscribed = ref.read(subscriptionProvider).value ?? false;
+      if (!isSubscribed) {
+        await _adManager.loadAd();
+      }
       await Future.delayed(const Duration(seconds: 2));
       _processImage();
     });
@@ -49,7 +55,9 @@ class ProcessingScreenState extends State<ProcessingScreen> {
 
   Future<void> _processImage() async {
     await Future.delayed(const Duration(seconds: 1)); // 少し待機
-    await _adManager.showAd(() async {
+    final isSubscribed = ref.read(subscriptionProvider).value ?? false;
+    
+    Future<void> processImageLogic() async {
       const apiUrl =
           'https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image';
 
@@ -162,7 +170,13 @@ class ProcessingScreenState extends State<ProcessingScreen> {
           errorMessage = e.toString();
         });
       }
-    });
+    };
+
+    if (isSubscribed) {
+      await processImageLogic();
+    } else {
+      await _adManager.showAd(processImageLogic);
+    }
   }
 
   Future<void> _shareImage() async {
@@ -212,15 +226,19 @@ class ProcessingScreenState extends State<ProcessingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isSubscribed = ref.watch(subscriptionProvider).value ?? false;
+    final bool isIpad = Platform.isIOS && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS) && MediaQuery.of(context).size.shortestSide >= 600;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.selectedStyle} style',
             style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: processedImageUrl != null ? _shareImage : null,
-          ),
+          if (!isIpad)
+            IconButton(
+              icon: const Icon(Icons.share),
+              onPressed: processedImageUrl != null ? _shareImage : null,
+            ),
           TextButton(
             onPressed: processedImageUrl != null ? _saveImage : null,
             child: Text(
@@ -281,7 +299,7 @@ class ProcessingScreenState extends State<ProcessingScreen> {
           ),
         ],
       ),
-      bottomSheet: const AdBanner(),
+      bottomSheet: isSubscribed ? null : const AdBanner(),
     );
   }
 }
