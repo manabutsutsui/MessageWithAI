@@ -130,6 +130,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             icon: const Icon(Icons.more_vert),
             onSelected: (value) {
               switch (value) {
+                case 'terms':
+                  _launchTermsOfService();
+                  break;
                 case 'privacy':
                   _launchPrivacyPolicy();
                   break;
@@ -147,6 +150,13 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'terms',
+                child: Text(
+                  'Terms of Use',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
               const PopupMenuItem<String>(
                 value: 'privacy',
                 child: Text(
@@ -235,6 +245,13 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     }
   }
 
+  Future<void> _launchTermsOfService() async {
+    final Uri url = Uri.parse('https://tsutsunoidoblog.com/style-shift-terms-of-use/');
+    if (!await launchUrl(url)) {
+      throw Exception('利用規約ページを開けませんでした');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -244,10 +261,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   Future<void> _fetchOfferings() async {
     try {
-      // final offerings = await Purchases.getOfferings();
-      // print(offerings.current);
-      // print(offerings.all);
-      // print(offerings.current?.monthly?.storeProduct.priceString);
+      final offerings = await Purchases.getOfferings();
+      print(offerings.current);
+      print(offerings.all);
+      print(offerings.current?.monthly?.storeProduct.priceString);
     } catch (e) {
       print('Error fetching offerings: $e');
     }

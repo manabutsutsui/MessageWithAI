@@ -13,7 +13,7 @@ class SubscriptionNotifier extends StateNotifier<AsyncValue<bool>> {
   Future<void> _init() async {
     try {
       final customerInfo = await Purchases.getCustomerInfo();
-      final isPro = customerInfo.entitlements.active.containsKey('ss_399_1m_3d0');
+      final isPro = customerInfo.entitlements.active.containsKey('rc_399_1m_3d0');
       state = AsyncValue.data(isPro);
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
@@ -24,7 +24,7 @@ class SubscriptionNotifier extends StateNotifier<AsyncValue<bool>> {
     // state = AsyncValue.loading();
     try {
       final customerInfo = await Purchases.getCustomerInfo();
-      final isPro = customerInfo.entitlements.active.containsKey('ss_399_1m_3d0');
+      final isPro = customerInfo.entitlements.active.containsKey('rc_399_1m_3d0');
       state = AsyncValue.data(isPro);
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);

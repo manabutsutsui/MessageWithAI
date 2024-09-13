@@ -11,7 +11,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'utils/ad_banner.dart';
 import 'utils/ad_reward_interstitial.dart';
 import 'provider/subscription_provider.dart';
-import 'package:flutter/foundation.dart';
 
 class ProcessingScreen extends ConsumerStatefulWidget {
   final File image;
@@ -227,18 +226,16 @@ class ProcessingScreenState extends ConsumerState<ProcessingScreen> {
   @override
   Widget build(BuildContext context) {
     final isSubscribed = ref.watch(subscriptionProvider).value ?? false;
-    final bool isIpad = Platform.isIOS && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS) && MediaQuery.of(context).size.shortestSide >= 600;
 
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.selectedStyle} style',
             style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
-          if (!isIpad)
-            IconButton(
-              icon: const Icon(Icons.share),
-              onPressed: processedImageUrl != null ? _shareImage : null,
-            ),
+          // IconButton(
+          //   icon: const Icon(Icons.share),
+          //   onPressed: processedImageUrl != null ? _shareImage : null,
+          // ),
           TextButton(
             onPressed: processedImageUrl != null ? _saveImage : null,
             child: Text(

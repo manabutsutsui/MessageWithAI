@@ -21,7 +21,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   void presentPaywallIfNeeded() async {
-    final paywallResult = await RevenueCatUI.presentPaywallIfNeeded("ss_399_1m_3d0");
+    final paywallResult = await RevenueCatUI.presentPaywallIfNeeded("rc_399_1m_3d0");
     log('Paywall result: $paywallResult');
   }
 
